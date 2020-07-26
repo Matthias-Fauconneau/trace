@@ -11,7 +11,7 @@ impl<'a, I:Iterator, P: FnMut(&<I as Iterator>::Item) -> bool> Iterator for Peek
     }
 }
 pub trait PeekableExt<'a, I:Iterator> : Iterator {
-    fn peeking_take_while<P:FnMut(&<Self as Iterator>::Item) -> bool>(&'a mut self, predicate: P) -> PeekingTakeWhile<'a, I, P>;
+    #[must_use] fn peeking_take_while<P:FnMut(&<Self as Iterator>::Item) -> bool>(&'a mut self, predicate: P) -> PeekingTakeWhile<'a, I, P>;
 }
 impl<'a, I:Iterator> PeekableExt<'a, I> for std::iter::Peekable<I> {
     fn peeking_take_while<P:FnMut(&<Self as Iterator>::Item) -> bool>(&'a mut self, predicate: P) -> PeekingTakeWhile<I, P> { PeekingTakeWhile{iter: self, predicate} }

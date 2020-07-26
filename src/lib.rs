@@ -16,6 +16,7 @@ pub fn time<T>(task: impl FnOnce() -> T) -> T {
 	eprintln!("{}", start.elapsed().as_millis());
 	result
 }
+pub fn call<T>(task: impl FnOnce() -> T) -> T { task() }
 cfg_if! { if #[cfg(feature="trace")] { mod trace; pub use trace::rstack_self; }}
 cfg_if! { if #[cfg(feature="timeout")] { mod timeout; pub use timeout::timeout; }}
 #[cfg(feature="signal-hook")] pub use trace::sigint_trace;
