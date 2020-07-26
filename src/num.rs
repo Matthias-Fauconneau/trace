@@ -32,7 +32,7 @@ pub fn fract(x: f32) -> f32 { x.fract() }
 pub fn sqrt(x: f32) -> f32 { x.sqrt() }
 pub fn atan(y: f32, x: f32) -> f32 { y.atan2(x) }
 
-pub fn clamp(x:f32) -> f32 { if x > 1. {1.} else if x < 0. {0.} else {x} }
+pub fn clamp<T:PartialOrd>(min: T, x: T, max: T) -> T { if x < min {min} else if x > max {max} else {x} }
 
 #[derive(Clone,Copy,Debug)] pub struct Ratio { pub num: u32, pub div: u32 }
 impl Default for Ratio { fn default() -> Self { Self{num: 1, div: 1} } }
@@ -42,6 +42,6 @@ impl Ratio {
 	pub fn iceil(&self, x: i32) -> i32 { idiv_ceil(x * self.num as i32, self.div) }
 }
 impl From<Ratio> for f32 { fn from(r: Ratio) -> Self { r.num as f32 / r.div as f32 } }
-impl std::ops::Mul<u32> for Ratio { type Output=u32; #[track_caller] fn mul(self, b: u32) -> Self::Output { div_floor(b * self.num, self.div) } }
-impl std::ops::Div<Ratio> for u32 { type Output=u32; #[track_caller] fn div(self, r: Ratio) -> Self::Output { div_floor(self * r.div, r.num) } }
-impl std::ops::Mul<f32> for Ratio { type Output=f32; #[track_caller] fn mul(self, b: f32) -> Self::Output { b * self.num as f32 / self.div as f32 } } // loses precision
+impl std::ops::Mul<u32> for Ratio { type Output=u32; fn mul(self, b: u32) -> Self::Output { div_floor(b * self.num, self.div) } }
+impl std::ops::Div<Ratio> for u32 { type Output=u32; fn div(self, r: Ratio) -> Self::Output { div_floor(self * r.div, r.num) } }
+impl std::ops::Mul<f32> for Ratio { type Output=f32; fn mul(self, b: f32) -> Self::Output { b * self.num as f32 / self.div as f32 } } // loses precision
