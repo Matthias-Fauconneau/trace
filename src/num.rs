@@ -1,3 +1,5 @@
+pub trait IsZero { fn is_zero(&self) -> bool; }
+
 pub trait Zero { fn zero() -> Self; }
 impl Zero for u32 { fn zero() -> Self { 0 } }
 impl Zero for u64 { fn zero() -> Self { 0 } }
@@ -7,6 +9,8 @@ impl Zero for f32 { fn zero() -> Self { 0. } }
 impl Zero for f64 { fn zero() -> Self { 0. } }
 impl<T0:Zero,T1:Zero> Zero for (T0,T1) { fn zero() -> Self { (Zero::zero(),Zero::zero()) } }
 
+impl<T:Zero+PartialEq> IsZero for T { fn is_zero(&self) -> bool { self == &Zero::zero() } }
+
 pub trait Signed { fn signum(&self) -> Self; fn abs(&self) -> Self; }
 macro_rules! signed_impl { ($($T:ty)+) => ($( impl Signed for $T { fn signum(&self) -> Self { <$T>::signum(*self) } fn abs(&self) -> Self { <$T>::abs(*self) } } )+) }
 signed_impl!(i16 i32 f32);
@@ -15,7 +19,7 @@ pub fn abs<T:Signed>(x : T) -> T { x.abs() }
 pub fn sq<T:Copy+std::ops::Mul>(x: T) -> T::Output { x*x }
 
 pub fn div_floor(n : u32, d : u32) -> u32 { n/d }
-pub fn div_ceil(n : u32, d : u32) -> u32 { (n+d-1)/d }
+#[track_caller] pub fn div_ceil(n : u32, d : u32) -> u32 { (n+d-1)/d }
 
 pub fn idiv_rem(n : i32, d : u32) -> (i32, i32) { (n/d as i32, n%d as i32) }
 pub fn idiv_floor(n: i32, d: u32) -> i32 {
