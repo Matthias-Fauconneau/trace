@@ -9,7 +9,6 @@ trace = ['fehler', 'rstack-self']
 timeout = [] # thread_spawn_unchecked
 array = []
 vector = ['array']
-default = ['anyhow','fehler','timeout'] # fehler::throws should $crate
 
 [dependencies]
 cfg-if = ''

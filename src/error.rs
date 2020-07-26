@@ -17,9 +17,3 @@ cfg_if::cfg_if! { if #[cfg(feature="anyhow")] {
 }}
 
 pub type Result<T=(), E=Error> = std::result::Result<T, E>;
-
-//pub trait Ok<T> { fn ok(self) -> Result<T>; }
-//impl<T> Ok<T> for Option<T> { fn ok(self) -> Result<T> { self.ok_or(()).ok_or(Error::msg("none")) } }
-
-//pub trait OkOr<T> { fn ok_or(self, s: &'static str) -> Result<T>; }
-//impl<T> OkOr<T> for Result<T, ()> { fn ok_or(self, s: &'static str) -> Result<T> { self.ok().ok_or(Error::msg(s)) } }
