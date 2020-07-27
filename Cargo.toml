@@ -16,3 +16,4 @@ fehler = { version='', optional=true }
 anyhow = { version='', optional=true }
 rstack-self = { version='', features=["dw"], default-features=false, optional=true }
 signal-hook = { version='', optional=true }
+unicode-segmentation = { version='', optional=true }

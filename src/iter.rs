@@ -16,3 +16,16 @@ pub trait PeekableExt<'a, I:Iterator> : Iterator {
 impl<'a, I:Iterator> PeekableExt<'a, I> for std::iter::Peekable<I> {
     fn peeking_take_while<P:FnMut(&<Self as Iterator>::Item) -> bool>(&'a mut self, predicate: P) -> PeekingTakeWhile<I, P> { PeekingTakeWhile{iter: self, predicate} }
 }
+
+pub trait NthOrLast : Iterator {
+	fn nth_or_last(&mut self, mut n: usize) -> Result<Self::Item, Option<Self::Item>> {
+		let mut last = None;
+		for x in self {
+			if n == 0 { return Ok(x); }
+			n -= 1;
+			last = Some(x);
+		}
+		Err(last)
+	}
+}
+impl<I:Iterator> NthOrLast for I {}

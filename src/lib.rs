@@ -2,6 +2,7 @@
 #![cfg_attr(feature="timeout", feature(thread_spawn_unchecked,duration_zero))]
 #![cfg_attr(feature="vector", feature(iterator_fold_self))]
 
+pub use core::{ops, result, convert}; // derive_more, num_enum
 //#[macro_export] macro_rules! dbg { ( $first:expr $(,$A:expr)* ) => ( eprint!("{} = {:?}", stringify!($first), $first); $( eprint!(", {} = {:?}", stringify!($A), $A); )* eprintln!(""); ) }
 pub mod error; pub use error::{Error, Result/*bail, ensure, Ok*/}; #[cfg(feature="fehler")] pub use error::throws;
 pub use cfg_if::cfg_if;
@@ -20,4 +21,4 @@ pub fn call<T>(task: impl FnOnce() -> T) -> T { task() }
 cfg_if! { if #[cfg(feature="trace")] { mod trace; pub use trace::rstack_self; }}
 cfg_if! { if #[cfg(feature="timeout")] { mod timeout; pub use timeout::timeout; }}
 #[cfg(feature="signal-hook")] pub use trace::sigint_trace;
-pub use core::{ops, result, convert}; // derive_more, num_enum
+#[cfg(feature="unicode-segmentation")] pub mod unicode_segmentation;
