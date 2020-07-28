@@ -34,14 +34,14 @@ impl<T> From<[T; $n]> for $v<T> { fn from([$($c),+]: [T; $n]) -> Self { $v{$($c)
 impl<T> From<$v<T>> for [T; $n] { fn from(v : $v<T>) -> Self { [$(v.$c),+] } }
 
 impl<'t, T> From<&'t $v<T>> for [&'t T; $n] { fn from(v : &'t $v<T>) -> Self { [$(&v.$c),+] } }
-#[cfg(feature="array")] impl<T> $v<T> { pub fn iter(&self) -> impl Iterator<Item=&T> { use crate::array::IntoIterator; <&Self as Into::<[&T; $n]>>::into(self).into_iter() } }
-#[cfg(feature="array")] impl<T> std::iter::FromIterator<T> for $v<T> { fn from_iter<I:std::iter::IntoIterator<Item=T>>(into_iter: I) -> Self {
-	use crate::array::FromIterator; <[T; $n]>::from_iter(into_iter).into()
+#[cfg(feature="iter")] impl<T> $v<T> { pub fn iter(&self) -> impl Iterator<Item=&T> { use $crate::array::IntoIterator; <&Self as Into::<[&T; $n]>>::into(self).into_iter() } }
+#[cfg(feature="iter")] impl<T> std::iter::FromIterator<T> for $v<T> { fn from_iter<I:std::iter::IntoIterator<Item=T>>(into_iter: I) -> Self {
+	use $crate::array::FromIterator; <[T; $n]>::from_iter(into_iter).into()
 } }
 
 #[derive(Clone, Copy)] pub enum Component { $($C),+ }
-#[cfg(feature="array")] impl Component {
-	pub fn enumerate() -> impl Iterator<Item=Self> { use crate::array::IntoIterator; [$(Self::$C),+].into_iter() }
+#[cfg(feature="iter")] impl Component {
+	pub fn enumerate() -> impl Iterator<Item=Self> { use $crate::array::IntoIterator; [$(Self::$C),+].into_iter() }
 }
 impl<T> std::ops::Index<Component> for $v<T> {
     type Output = T;
@@ -51,11 +51,11 @@ impl<T> std::ops::Index<Component> for $v<T> {
         }
     }
 }
-#[cfg(feature="array")] pub fn $v<B>(f: impl FnMut(Component) -> B) -> $v<B> { Component::enumerate().map(f).collect() }
+#[cfg(feature="iter")] pub fn $v<B>(f: impl FnMut(Component) -> B) -> $v<B> { Component::enumerate().map(f).collect() }
 
 impl<T:Eq> PartialEq<T> for $v<T> { fn eq(&self, b: &T) -> bool { $( self.$c==*b )&&+ } }
 
-#[cfg(feature="array")] impl<T:PartialOrd> PartialOrd for $v<T> { fn partial_cmp(&self, b: &Self) -> Option<std::cmp::Ordering> {
+#[cfg(feature="iter")] impl<T:PartialOrd> PartialOrd for $v<T> { fn partial_cmp(&self, b: &Self) -> Option<std::cmp::Ordering> {
 	Component::enumerate().map(|i| self[i].partial_cmp(&b[i])).fold_first(|c,x| if c == x { c } else { None }).flatten()
 } }
 

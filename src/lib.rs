@@ -2,7 +2,24 @@
 #![cfg_attr(feature="timeout", feature(thread_spawn_unchecked,duration_zero))]
 #![cfg_attr(feature="vector", feature(iterator_fold_self))]
 
-pub use core::{ops, result, convert}; // derive_more, num_enum
+pub use core::{ops, result, convert, fmt}; // derive_more
+
+pub trait OptionExt<T> { fn try_map<E, U, F:FnOnce(T)->Result<U, E>>(self, f: F) -> Result<Option<U>, E>; }
+impl<T> OptionExt<T> for Option<T> {
+	fn try_map<E, U, F:FnOnce(T) ->Result<U, E>>(self, f: F) -> Result<Option<U>, E> { self.map(f).transpose() }
+}
+
+pub trait VecExt { // xml
+	type Item;
+	fn take_first<P:Fn(&Self::Item)->bool>(&mut self, predicate: P) -> Option<Self::Item>;
+}
+impl<T> VecExt for Vec<T> {
+	type Item = T;
+	fn take_first<P:Fn(&Self::Item)->bool>(&mut self, predicate: P) -> Option<Self::Item> {
+		Some(self.remove(self.iter().position(predicate)?))
+	}
+}
+
 //#[macro_export] macro_rules! dbg { ( $first:expr $(,$A:expr)* ) => ( eprint!("{} = {:?}", stringify!($first), $first); $( eprint!(", {} = {:?}", stringify!($A), $A); )* eprintln!(""); ) }
 pub mod error; pub use error::{Error, Result/*bail, ensure, Ok*/}; #[cfg(feature="fehler")] pub use error::throws;
 pub use cfg_if::cfg_if;
