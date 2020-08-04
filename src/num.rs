@@ -1,4 +1,9 @@
-pub trait IsZero { fn is_zero(&self) -> bool; }
+pub trait IsZero {
+	fn is_zero(&self) -> bool;
+	fn is_nonzero(&self) -> bool { !self.is_zero() } // final
+	//fn is_none(&self) -> bool { self.is_zero() } // final
+	//fn is_some(&self) -> bool { self.is_nonzero() } // final
+}
 
 pub trait Zero { fn zero() -> Self; }
 impl Zero for u32 { fn zero() -> Self { 0 } }
@@ -10,6 +15,9 @@ impl Zero for f64 { fn zero() -> Self { 0. } }
 impl<T0:Zero,T1:Zero> Zero for (T0,T1) { fn zero() -> Self { (Zero::zero(),Zero::zero()) } }
 
 impl<T:Zero+PartialEq> IsZero for T { fn is_zero(&self) -> bool { self == &Zero::zero() } }
+
+//pub trait DefaultZero : Default {}
+//impl<T:DefaultZero> Zero for T { fn zero() -> Self { Default::default() } }
 
 pub trait Signed { fn signum(&self) -> Self; fn abs(&self) -> Self; }
 macro_rules! signed_impl { ($($T:ty)+) => ($( impl Signed for $T { fn signum(&self) -> Self { <$T>::signum(*self) } fn abs(&self) -> Self { <$T>::abs(*self) } } )+) }
