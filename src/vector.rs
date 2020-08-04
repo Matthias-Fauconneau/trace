@@ -56,7 +56,7 @@ impl<T> std::ops::Index<Component> for $v<T> {
 impl<T:Eq> PartialEq<T> for $v<T> { fn eq(&self, b: &T) -> bool { $( self.$c==*b )&&+ } }
 
 #[cfg(feature="iter")] impl<T:PartialOrd> PartialOrd for $v<T> { fn partial_cmp(&self, b: &Self) -> Option<std::cmp::Ordering> {
-	Component::enumerate().map(|i| self[i].partial_cmp(&b[i])).fold_first(|c,x| if c == x { c } else { None }).flatten()
+	Component::enumerate().map(|i| self[i].partial_cmp(&b[i])).fold_first(|c,x| if c == Some(std::cmp::Ordering::Equal) || c == x { x } else { None }).flatten()
 } }
 
 impl<T:Ord> $crate::vector::ComponentWiseMinMax for $v<T> {
@@ -73,7 +73,6 @@ impl<T:Div+Copy> Div<T> for $v<T> { type Output=$v<T::Output>; fn div(self, b: T
 
 impl<T:Copy> From<T> for $v<T> { fn from(v: T) -> Self { $v{$($c:v),+} } }
 impl<T:Copy+$crate::num::Zero> $crate::num::Zero for $v<T> { fn zero() -> Self { T::zero().into() } }
-//impl<T:Copy+$crate::num::Zero> $v<T> { pub fn zero() -> Self { $crate::num::Zero::zero() } } // vec::zero without use Zero
 
 fn mul<T:Copy+Mul>(a: T, b: $v<T>) -> $v<T::Output> { $v{$($c: a*b.$c),+} }
 fn div<T:Copy+Div>(a: T, b: $v<T>) -> $v<T::Output> { $v{$($c: a/b.$c),+} }

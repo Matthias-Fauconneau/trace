@@ -46,7 +46,7 @@ pub fn atan(y: f32, x: f32) -> f32 { y.atan2(x) }
 
 pub fn clamp<T:PartialOrd>(min: T, x: T, max: T) -> T { if x < min {min} else if x > max {max} else {x} }
 
-#[derive(Clone,Copy,Debug)] pub struct Ratio { pub num: u32, pub div: u32 }
+#[derive(Clone,Copy,Debug,PartialEq)] pub struct Ratio { pub num: u32, pub div: u32 }
 impl Default for Ratio { fn default() -> Self { Self{num: 1, div: 1} } }
 impl Ratio {
 	pub fn ceil(&self, x: u32) -> u32 { div_ceil(x * self.num, self.div) }
