@@ -1,18 +1,13 @@
 [package]
-name = 'core'
+name = 'trace'
 version = '0.0.0'
 authors = ['Matthias Fauconneau <matthias.fauconneau@gmail.com>']
 edition = '2018'
 
-[features]
-trace = ['fehler', 'rstack-self']
-timeout = [] # thread_spawn_unchecked
-vector = ['array']
-
 [dependencies]
-array = { path = '../array', optional=true }
-cfg-if = ''
-fehler = { version='', optional=true }
-anyhow = { version='', optional=true }
-rstack-self = { version='', features=["dw"], default-features=false, optional=true }
-signal-hook = { version='', optional=true }
+#array ={path='../array'}
+cfg-if =''
+fehler =''
+anyhow =''
+rstack-self ={version='', features=["dw"], default-features=false}
+signal-hook = ''
