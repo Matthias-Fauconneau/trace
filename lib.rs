@@ -24,7 +24,8 @@ pub fn trace() {
 
 pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[signal_hook::SIGINT]).unwrap().forever() { trace(); std::process::abort() }); }
 
-#[fehler::throws(std::io::Error)] fn timeout_<T>(task: impl FnOnce()->T, time: std::time::Duration, display: impl std::fmt::Display + std::marker::Sync) -> T {
+#[fehler::throws(std::io::Error)] pub fn timeout_<T>(time: /*std::time::Duration*/u64, task: impl FnOnce()->T, display: impl std::fmt::Display + std::marker::Sync) -> T {
+	let time = std::time::Duration::from_millis(time);
 	if time.is_zero() { task() } else {
 		let done = std::sync::atomic::AtomicBool::new(false);
 		let watchdog = || {
@@ -34,8 +35,8 @@ pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals:
 				std::thread::park_timeout(remaining);
 				let elapsed = start.elapsed();
 				if elapsed >= time {
+					trace(); //#[cfg(feature="trace")] crate::trace::trace();
 					eprintln!("{}", display);
-					//trace(); //#[cfg(feature="trace")] crate::trace::trace();
 					std::process::abort()
 				}
 				remaining = time - elapsed;
@@ -51,4 +52,4 @@ pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals:
 }
 //pub fn timeout<T>(debug: impl std::fmt::Debug + std::marker::Sync, task: impl FnOnce()->T) -> T { timeout_(task, std::time::Duration::from_millis(1), debug).unwrap() }
 //#[track_caller] pub fn timeout<T>(task: impl FnOnce()->T) -> T { timeout_(task, std::time::Duration::from_millis(1), std::panic::Location::caller()).unwrap() }
-#[track_caller] pub fn timeout<T>(time: u64, task: impl FnOnce()->T) -> T { timeout_(task, std::time::Duration::from_millis(time), std::panic::Location::caller()).unwrap() }
+#[track_caller] pub fn timeout<T>(time: u64, task: impl FnOnce()->T) -> T { timeout_(time, task, std::panic::Location::caller()).unwrap() }
