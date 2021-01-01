@@ -22,7 +22,7 @@ pub fn trace() {
 	}
 }
 
-pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[signal_hook::SIGINT]).unwrap().forever() { trace(); std::process::abort() }); }
+pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGINT]).unwrap().forever() { trace(); std::process::abort() }); }
 
 #[fehler::throws(std::io::Error)] pub fn timeout_<T>(time: /*std::time::Duration*/u64, task: impl FnOnce()->T, display: impl std::fmt::Display + std::marker::Sync) -> T {
 	let time = std::time::Duration::from_millis(time);

@@ -1,16 +1,16 @@
 [package]
-name = 'trace'
-version = '0.0.0'
-authors = ['Matthias Fauconneau <matthias.fauconneau@gmail.com>']
-edition = '2018'
+name= 'trace'
+version= '0.1.0'
+authors= ['Matthias Fauconneau <matthias.fauconneau@gmail.com>']
+edition= '2018'
 
 [lib]
-path = 'lib.rs'
+path= 'lib.rs'
 
 [dependencies]
-#array ={path='../array'}
-cfg-if =''
-fehler =''
-anyhow =''
-rstack-self ={version='', features=["dw"], default-features=false}
-signal-hook = ''
+cfg-if= ''
+fehler= ''
+anyhow= ''
+rstack-self= {version='', features=["dw"], default-features=false}
+signal-hook= '^0.3'
+libc= ''
