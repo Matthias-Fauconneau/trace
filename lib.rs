@@ -1,4 +1,4 @@
-#![feature(duration_zero,thread_spawn_unchecked)]
+#![feature(duration_zero, thread_spawn_unchecked, asm)]
 #[fehler::throws(rstack_self::Error)] pub fn rstack_self() {
 	if std::env::args().nth(1).unwrap_or_default() == "rstack-self" {
 		rstack_self::child()?;
@@ -22,6 +22,7 @@ pub fn trace() {
 	}
 }
 
+pub fn sigfpe() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGFPE]).unwrap().forever() { trace(); std::process::abort() }); }
 pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGINT]).unwrap().forever() { trace(); std::process::abort() }); }
 
 #[fehler::throws(std::io::Error)] pub fn timeout_<T>(time: /*std::time::Duration*/u64, task: impl FnOnce()->T, display: impl std::fmt::Display + std::marker::Sync) -> T {
@@ -50,6 +51,17 @@ pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals:
 		result
 	}
 }
-//pub fn timeout<T>(debug: impl std::fmt::Debug + std::marker::Sync, task: impl FnOnce()->T) -> T { timeout_(task, std::time::Duration::from_millis(1), debug).unwrap() }
-//#[track_caller] pub fn timeout<T>(task: impl FnOnce()->T) -> T { timeout_(task, std::time::Duration::from_millis(1), std::panic::Location::caller()).unwrap() }
 #[track_caller] pub fn timeout<T>(time: u64, task: impl FnOnce()->T) -> T { timeout_(time, task, std::panic::Location::caller()).unwrap() }
+
+#[allow(non_snake_case)] pub fn unmask_SSE_exceptions() {
+	unsafe {
+		asm!(
+			"sub rsp, 4",
+			"stmxcsr [rsp]",
+			"and dword ptr [rsp], {csr}", // only invalid, divide-by-zero
+			"ldmxcsr [rsp]",
+			"add rsp, 4",
+			csr = const 0b11111111_11111111_11111000_01111111u32,
+		);
+	 }
+}
