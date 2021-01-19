@@ -1,5 +1,9 @@
-#![feature(duration_zero, thread_spawn_unchecked, asm)]
+#![feature(duration_zero, thread_spawn_unchecked, asm, once_cell)]
+
+static RSTACK_SELF: std::lazy::SyncLazy<std::sync::atomic::AtomicBool> = std::lazy::SyncLazy::new(|| false.into());
+
 #[fehler::throws(rstack_self::Error)] pub fn rstack_self() {
+	RSTACK_SELF.store(true, std::sync::atomic::Ordering::Relaxed);
 	if std::env::args().nth(1).unwrap_or_default() == "rstack-self" {
 		rstack_self::child()?;
 		std::process::exit(0);
@@ -7,8 +11,9 @@
 }
 
 pub fn trace() {
+	assert!(RSTACK_SELF.load(std::sync::atomic::Ordering::Relaxed));
 	for thread in rstack_self::trace(std::process::Command::new(std::env::current_exe().unwrap()).arg("rstack-self")).unwrap().threads().first() {
-		struct Symbol<'t> {line: u32, name: &'t str};
+		struct Symbol<'t> {line: u32, name: &'t str}
 		let mut symbols = thread.frames().iter().rev().flat_map(|frame|
 			frame.symbols().iter().rev().filter_map(|sym|
 				sym.line().map(|line| sym.name().map(|mut name| {
@@ -22,8 +27,8 @@ pub fn trace() {
 	}
 }
 
-pub fn sigfpe() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGFPE]).unwrap().forever() { trace(); std::process::abort() }); }
-pub fn sigint() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGINT]).unwrap().forever() { trace(); std::process::abort() }); }
+pub fn trace_signal_floating_point_exception() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGFPE]).unwrap().forever() { eprintln!("Floating point exception"); trace(); std::process::abort() }); }
+pub fn trace_signal_interrupt() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGINT]).unwrap().forever() { trace(); std::process::abort() }); }
 
 #[fehler::throws(std::io::Error)] pub fn timeout_<T>(time: /*std::time::Duration*/u64, task: impl FnOnce()->T, display: impl std::fmt::Display + std::marker::Sync) -> T {
 	let time = std::time::Duration::from_millis(time);
