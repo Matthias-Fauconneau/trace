@@ -63,10 +63,10 @@ pub fn trace_signal_interrupt() { std::thread::spawn(|| for _ in signal_hook::it
 		asm!(
 			"sub rsp, 4",
 			"stmxcsr [rsp]",
-			"and dword ptr [rsp], {csr}", // only invalid, divide-by-zero
+			"and dword ptr [rsp], {csr}",
 			"ldmxcsr [rsp]",
 			"add rsp, 4",
-			csr = const 0b11111111_11111111_11111000_01111111u32,
+			csr = const 0b11111111_11111111_11111101_01111111u32, // only invalid, divide-by-zero
 		);
 	 }
 }
