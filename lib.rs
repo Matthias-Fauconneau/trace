@@ -1,4 +1,4 @@
-#![feature(duration_zero, thread_spawn_unchecked, asm, once_cell)]
+#![feature(thread_spawn_unchecked, asm, once_cell)]
 
 static RSTACK_SELF: std::lazy::SyncLazy<std::sync::atomic::AtomicBool> = std::lazy::SyncLazy::new(|| false.into());
 
@@ -10,12 +10,12 @@ static RSTACK_SELF: std::lazy::SyncLazy<std::sync::atomic::AtomicBool> = std::la
 	}
 }
 
-pub fn trace(_: *mut libc::c_void) {
+pub fn trace(_: *const std::ffi::c_void) {
 	assert!(RSTACK_SELF.load(std::sync::atomic::Ordering::Relaxed));
 	for thread in rstack_self::trace(std::process::Command::new(std::env::current_exe().unwrap()).arg("rstack-self")).unwrap().threads().first() {
 		for frame in thread.frames().iter().rev() {
 			for symbol in frame.symbols().iter().rev() {
-				if let (Some(line), Some(name)) = (sym.line(), sym.name()) { eprintln!("{}:{}", name, line) }
+				if let (Some(line), Some(name)) = (symbol.line(), symbol.name()) { eprintln!("{}:{}", name, line) }
 				//if let Some(hash) = name.rfind("::") { name = name.split_at(hash).0; }
 			}
 		}
@@ -37,7 +37,7 @@ use std::{ptr::null, thread::spawn, process::abort};
 use signal_hook::{iterator::*, consts::signal::*};
 pub fn signal_floating_point_exception() { spawn(|| for _ in Signals::new(&[SIGFPE]).unwrap().forever() { eprintln!("Floating point exception"); trace(null()); abort() }); }
 pub fn signal_interrupt() { spawn(|| for _ in Signals::new(&[SIGINT]).unwrap().forever() { trace(null()); abort() }); }
-pub fn signal_illegal() { spawn(|| for info in SignalsInfo<exfiltrator::raw::WithRawSiginfo>::new(&[SIGILL]).unwrap().forever() { trace(info.si_addr()); abort() }); }
+pub fn signal_illegal() { spawn(|| for info in SignalsInfo::<exfiltrator::raw::WithRawSiginfo>::new(&[SIGILL]).unwrap().forever() { trace(unsafe{info.si_addr()}); abort() }); }
 
 #[fehler::throws(std::io::Error)] pub fn timeout_<T>(time: /*std::time::Duration*/u64, task: impl FnOnce()->T, display: impl std::fmt::Display + std::marker::Sync) -> T {
 	let time = std::time::Duration::from_millis(time);
@@ -50,7 +50,7 @@ pub fn signal_illegal() { spawn(|| for info in SignalsInfo<exfiltrator::raw::Wit
 				std::thread::park_timeout(remaining);
 				let elapsed = start.elapsed();
 				if elapsed >= time {
-					trace(); //#[cfg(feature="trace")] crate::trace::trace();
+					trace(null()); //#[cfg(feature="trace")] crate::trace::trace();
 					eprintln!("{}", display);
 					std::process::abort()
 				}
