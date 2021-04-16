@@ -10,25 +10,34 @@ static RSTACK_SELF: std::lazy::SyncLazy<std::sync::atomic::AtomicBool> = std::la
 	}
 }
 
-pub fn trace() {
+pub fn trace(_: *mut libc::c_void) {
 	assert!(RSTACK_SELF.load(std::sync::atomic::Ordering::Relaxed));
 	for thread in rstack_self::trace(std::process::Command::new(std::env::current_exe().unwrap()).arg("rstack-self")).unwrap().threads().first() {
-		struct Symbol<'t> {line: u32, name: &'t str}
-		let mut symbols = thread.frames().iter().rev().flat_map(|frame|
-			frame.symbols().iter().rev().filter_map(|sym|
-				sym.line().map(|line| sym.name().map(|mut name| {
-					if let Some(hash) = name.rfind("::") { name = name.split_at(hash).0; }
-					Symbol{line,name}
-				})).flatten()
-			)
-		);
-		for Symbol{line,name,..} in &mut symbols { if name.ends_with("::main") { eprintln!("{}:{}", name, line); break; } }
-		for Symbol{line,name,..} in symbols { eprintln!("{}:{}", name, line); }
+		for frame in thread.frames().iter().rev() {
+			for symbol in frame.symbols().iter().rev() {
+				if let (Some(line), Some(name)) = (sym.line(), sym.name()) { eprintln!("{}:{}", name, line) }
+				//if let Some(hash) = name.rfind("::") { name = name.split_at(hash).0; }
+			}
+		}
 	}
+	/*struct Symbol<'t> {line: u32, name: &'t str}
+	let mut symbols = thread.frames().iter().rev().flat_map(|frame|
+		frame.symbols().iter().rev().filter_map(|sym|
+			sym.line().map(|line| sym.name().map(|mut name| {
+				if let Some(hash) = name.rfind("::") { name = name.split_at(hash).0; }
+				Symbol{line,name}
+			})).flatten().or(||
+		)
+	);
+	for Symbol{line,name,..} in &mut symbols { if name.ends_with("::main") { eprintln!("{}:{}", name, line); break; } }
+	for Symbol{line,name,..} in symbols { eprintln!("{}:{}", name, line); }*/
 }
 
-pub fn trace_signal_floating_point_exception() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGFPE]).unwrap().forever() { eprintln!("Floating point exception"); trace(); std::process::abort() }); }
-pub fn trace_signal_interrupt() { std::thread::spawn(|| for _ in signal_hook::iterator::Signals::new(&[libc::SIGINT]).unwrap().forever() { trace(); std::process::abort() }); }
+use std::{ptr::null, thread::spawn, process::abort};
+use signal_hook::{iterator::*, consts::signal::*};
+pub fn signal_floating_point_exception() { spawn(|| for _ in Signals::new(&[SIGFPE]).unwrap().forever() { eprintln!("Floating point exception"); trace(null()); abort() }); }
+pub fn signal_interrupt() { spawn(|| for _ in Signals::new(&[SIGINT]).unwrap().forever() { trace(null()); abort() }); }
+pub fn signal_illegal() { spawn(|| for info in SignalsInfo<exfiltrator::raw::WithRawSiginfo>::new(&[SIGILL]).unwrap().forever() { trace(info.si_addr()); abort() }); }
 
 #[fehler::throws(std::io::Error)] pub fn timeout_<T>(time: /*std::time::Duration*/u64, task: impl FnOnce()->T, display: impl std::fmt::Display + std::marker::Sync) -> T {
 	let time = std::time::Duration::from_millis(time);
