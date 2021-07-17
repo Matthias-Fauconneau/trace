@@ -2,7 +2,8 @@
 
 static RSTACK_SELF: std::lazy::SyncLazy<std::sync::atomic::AtomicBool> = std::lazy::SyncLazy::new(|| false.into());
 
-#[fehler::throws(rstack_self::Error)] pub fn rstack_self() {
+use {fehler::throws, rstack_self::Error};
+#[throws] pub fn rstack_self() {
 	RSTACK_SELF.store(true, std::sync::atomic::Ordering::Relaxed);
 	if std::env::args().nth(1).unwrap_or_default() == "rstack-self" {
 		rstack_self::child()?;
@@ -35,9 +36,18 @@ pub fn trace(_: *const std::ffi::c_void) {
 
 use std::{ptr::null, thread::spawn, process::abort};
 use signal_hook::{iterator::*, consts::signal::*};
-pub fn signal_floating_point_exception() { spawn(|| for _ in Signals::new(&[SIGFPE]).unwrap().forever() { eprintln!("Floating point exception"); trace(null()); abort() }); }
-pub fn signal_interrupt() { spawn(|| for _ in Signals::new(&[SIGINT]).unwrap().forever() { trace(null()); abort() }); }
-pub fn signal_illegal() { spawn(|| for info in SignalsInfo::<exfiltrator::raw::WithRawSiginfo>::new(&[SIGILL]).unwrap().forever() { trace(unsafe{info.si_addr()}); abort() }); }
+#[throws] pub fn signal_floating_point_exception() {
+	rstack_self()?;
+	spawn(|| for _ in Signals::new(&[SIGFPE]).unwrap().forever() { eprintln!("Floating point exception"); trace(null()); abort() });
+}
+#[throws] pub fn signal_interrupt() {
+	rstack_self()?;
+	spawn(|| for _ in Signals::new(&[SIGINT]).unwrap().forever() { trace(null()); abort() });
+}
+#[throws] pub fn signal_illegal() {
+	rstack_self()?;
+	spawn(|| for info in SignalsInfo::<exfiltrator::raw::WithRawSiginfo>::new(&[SIGILL]).unwrap().forever() { trace(unsafe{info.si_addr()}); abort() });
+}
 
 #[fehler::throws(std::io::Error)] pub fn timeout_<T>(time: /*std::time::Duration*/u64, task: impl FnOnce()->T, display: impl std::fmt::Display + std::marker::Sync) -> T {
 	let time = std::time::Duration::from_millis(time);
