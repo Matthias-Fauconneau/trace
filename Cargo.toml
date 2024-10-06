@@ -7,7 +7,7 @@ example=[{name='example', path='example.rs'}]
 std=[]
 
 [dependencies]
-rustix={version='*', default-features=false, features=['thread','runtime','stdio']}
+rustix={version='*', default-features=false, features=['thread','runtime','stdio','time']}
 linux-raw-sys={version='*', default-features=false, features=['no_std']}
 #cfg-if='*'
 #fehler='*'
