@@ -1,10 +1,26 @@
-cargo-features=['edition2021']
-package={name='trace',version='0.0.0', edition= '2021'}
+cargo-features=['edition2024']
+package={name='trace', version='0.0.0', edition='2024'}
 lib={path='lib.rs'}
+example=[{name='example', path='example.rs'}]
+
+[features]
+std=[]
 
 [dependencies]
-cfg-if='*'
-fehler='*'
-anyhow='*'
-rstack-self= {version='*', features=["dw"], default-features=false}
-signal-hook= {git='https://github.com/Matthias-Fauconneau/signal-hook'}
+rustix={version='*', default-features=false, features=['thread','runtime','stdio']}
+linux-raw-sys={version='*', default-features=false, features=['no_std']}
+#cfg-if='*'
+#fehler='*'
+#anyhow='*'
+#rstack-self={version='*', features=["dw"], default-features=false}
+#signal-hook={git='https://github.com/Matthias-Fauconneau/signal-hook'}
+compiler_builtins={version='*', features=['mem']}
+origin-studio={version='*', default-features=false, features=['rustix','std','thread']}#, stack-overflow}
+#libc='*'
+origin={version='*', default-features=false}
+
+[patch.'crates-io']
+rustix={path='../rustix'}
+linux-raw-sys={path='../linux-raw-sys'}
+origin={path='../origin'}
+origin-studio={path='../origin-studio'}
